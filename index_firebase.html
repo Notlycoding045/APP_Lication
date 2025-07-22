@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OREX POWER SYSTEMS</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      margin: 0;
+      padding: 20px;
+      color: white;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-attachment: fixed;
+      position: relative;
+      padding-bottom: 60px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      color: #00f0ff;
+      text-shadow: 0 0 10px #00f0ff;
+      animation: pulse 2s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { text-shadow: 0 0 10px #00f0ff; }
+      to { text-shadow: 0 0 25px #00ffff; }
+    }
+
+    .page {
+      max-width: 550px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,255,255,0.2);
+      transition: all 0.3s ease;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      background: #00c6ff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 12px #00e6ff, inset 0 0 0 transparent;
+    }
+
+    .btn:hover {
+      background: #00f2fe;
+      box-shadow: 0 0 20px #00e6ff, inset 0 0 5px #fff;
+      transform: translateY(-1px);
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      color: #00ffff;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 2px solid #00e0ff;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 10px #00e0ff;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+    }
+
+    .record {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #00e0ff88;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 14px;
+      box-shadow: 0 0 10px #00e6ff50;
+    }
+
+    .record h3 {
+      margin: 0 0 10px;
+      color: #00ffff;
+    }
+
+    .record p {
+      margin: 4px 0;
+    }
+
+    .record button {
+      padding: 10px;
+      border: none;
+      margin-top: 10px;
+      margin-right: 10px;
+      border-radius: 10px;
+      background: #0077ff;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .record button:hover {
+      background: #00bbff;
+      box-shadow: 0 0 10px #00e6ff;
+    }
+
+    .error {
+      color: #ff4d4d;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #00ffff80;
+      font-size: 0.9rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+</head>
+<body>
+
+  <h1>OREX POWER SYSTEMS</h1>
+
+  
+<div id="loginPage" class="page">
+  <label>Enter Access Code:</label>
+  <input type="tel" id="accessCode" placeholder="Enter 4-digit Code" inputmode="numeric" pattern="[0-9]*" maxlength="4" />
+  <button class="btn" onclick="checkLogin()">Log In</button>
+  <div id="loginError" class="error"></div>
+</div>
+
+<div id="homePage" class="page">
+    <button class="btn" onclick="showPage('pendingPage')">Pending Items</button>
+    <button class="btn" onclick="showPage('newCustomerPage')">Add Customer</button>
+    <button class="btn" onclick="showPage('historyPage')">Repair History</button>
+
+<button class="btn" id="logoutBtn" style="background:#ff4d4d;box-shadow:0 0 12px #ff4d4d;" onclick="logout()">Log Out</button>
+
+  </div>
+
+  <div id="newCustomerPage" class="page hidden">
+    <form id="jobForm">
+      <label>Customer Name:</label>
+      <input type="text" id="custName" required />
+
+      <label>Customer Phone Number:</label>
+      <input type="tel" id="phone" placeholder="e.g. 9876543210" required />
+      <div id="phoneError" class="error"></div>
+
+      <label>Item to Repair:</label>
+      <input type="text" id="itemName" required />
+
+      <label>Date Given:</label>
+      <input type="date" id="dateGiven" required />
+
+      <label>Estimated Pickup Date:</label>
+      <input type="date" id="pickupDate" required />
+
+      <button type="submit" class="btn">Send to WhatsApp</button>
+    </form>
+    <button class="btn" onclick="showPage('homePage')">Back to Home</button>
+  </div>
+
+  <div id="pendingPage" class="page hidden">
+    <div id="recordsContainer"></div>
+    <button class="btn" onclick="showPage('homePage')">Back to Home</button>
+  </div>
+
+  <div id="historyPage" class="page hidden">
+    <div id="historyContainer"></div>
+    <button class="btn" onclick="showPage('homePage')">Back to Home</button>
+  </div>
+
+  <div class="watermark">JASHIN DESIGNS</div>
+
+  <script>
+    
+let jobs = [];
+firebase.database().ref('repairJobs').once('value', (snapshot) => {
+  const data = snapshot.val();
+  jobs = data ? Object.values(data) : [];
+  localStorage.setItem('repairJobs', JSON.stringify(jobs));
+firebase.database().ref('repairJobs').set(jobs);
+  renderJobs();
+});
+
+    
+let history = [];
+firebase.database().ref('finishedJobs').once('value', (snapshot) => {
+  const data = snapshot.val();
+  history = data ? Object.values(data) : [];
+  localStorage.setItem('finishedJobs', JSON.stringify(history));
+firebase.database().ref('finishedJobs').set(history);
+  renderHistory();
+});
+
+
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(pageId).classList.remove('hidden');
+      if (pageId === 'pendingPage') renderJobs();
+      if (pageId === 'historyPage') renderHistory();
+    }
+
+    function isValidPhoneNumber(phone) {
+      return /^\d{10}$/.test(phone);
+    }
+
+    document.getElementById('jobForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const itemName = document.getElementById('itemName').value.trim();
+      const dateGiven = document.getElementById('dateGiven').value;
+      const pickupDate = document.getElementById('pickupDate').value;
+      const phoneError = document.getElementById('phoneError');
+
+      if (!isValidPhoneNumber(phone)) {
+        phoneError.textContent = "Enter a valid 10-digit phone number.";
+        return;
+      }
+
+      phoneError.textContent = "";
+
+      const job = {
+        name, phone, itemName, dateGiven, pickupDate,
+        id: Date.now()
+      };
+
+      jobs.push(job);
+      localStorage.setItem('repairJobs', JSON.stringify(jobs));
+firebase.database().ref('repairJobs').set(jobs);
+      this.reset();
+      showPage('pendingPage');
+      renderJobs();
+
+      const message =
+        `Hello ${name}! Thank you for giving your item for repair at OREX POWER SYSTEMS.%0A%0A` +
+        `Item: ${itemName}%0AReceived: ${dateGiven}%0APickup: ${pickupDate}%0A%0A` +
+        `Contact: 8075537916%0AWe appreciate your business.`;
+
+      window.open(`https://wa.me/91${phone}?text=${message}`, '_blank');
+    });
+
+    function renderJobs() {
+      const container = document.getElementById('recordsContainer');
+      container.innerHTML = '';
+      if (jobs.length === 0) container.innerHTML = "<p>No pending items.</p>";
+
+      jobs.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'record';
+
+        div.innerHTML = `
+          <h3>${job.itemName}</h3>
+          <p><strong>Name:</strong> ${job.name}</p>
+          <p><strong>Phone:</strong> ${job.phone}</p>
+          <p><strong>Given:</strong> ${job.dateGiven}</p>
+          <p><strong>Pickup:</strong> ${job.pickupDate}</p>
+          
+          <label>Pickuper's name (required):</label>
+          <input type="text" id="pickupBy-${job.id}" placeholder="Pickuper's name" required />
+
+          <label>Picked-Up Date:</label>
+          <input type="date" id="pickedDate-${job.id}" required />
+
+          <button onclick="markAsDone(${job.id})">Repaired</button>
+          <button onclick="deleteJob(${job.id})">Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyContainer');
+      container.innerHTML = '';
+      if (history.length === 0) container.innerHTML = "<p>No finished work yet.</p>";
+
+      history.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'record';
+
+        div.innerHTML = `
+          <h3>${job.itemName}</h3>
+          <p><strong>Name:</strong> ${job.name}</p>
+          <p><strong>Phone:</strong> ${job.phone}</p>
+          <p><strong>Given:</strong> ${job.dateGiven}</p>
+          <p><strong>Pickup:</strong> ${job.pickupDate}</p>
+          <button onclick="deleteHistory(${job.id})">Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    
+    
+    function markAsDone(id) {
+      const index = jobs.findIndex(job => job.id === id);
+      if (index !== -1) {
+        const finished = jobs.splice(index, 1)[0];
+
+        const pickupInput = document.getElementById(`pickupBy-${id}`);
+        const pickupBy = pickupInput?.value.trim();
+
+        const pickedDateInput = document.getElementById(`pickedDate-${id}`);
+        const pickedDate = pickedDateInput?.value;
+
+        if (!pickupBy || !pickedDate) {
+          alert("Please enter both the pickuper's name and picked-up date.");
+          return;
+        }
+
+        finished.pickedDate = pickedDate;
+
+        history.push(finished);
+        localStorage.setItem('repairJobs', JSON.stringify(jobs));
+        firebase.database().ref('repairJobs').set(jobs);
+        localStorage.setItem('finishedJobs', JSON.stringify(history));
+        firebase.database().ref('finishedJobs').set(history);
+
+        renderJobs();
+
+        const message = `Hi ${finished.name}, your item (${finished.itemName}) has been repaired.%0A` +
+                        `This item will be picked up by ${pickupBy} on ${pickedDate}.%0A` +
+                        `Thank you for choosing OREX POWER SYSTEMS!`;
+
+        window.open(`https://wa.me/91${finished.phone}?text=${message}`, '_blank');
+      }
+    }
+
+
+    function deleteJob(id) {
+      jobs = jobs.filter(job => job.id !== id);
+      localStorage.setItem('repairJobs', JSON.stringify(jobs));
+firebase.database().ref('repairJobs').set(jobs);
+      renderJobs();
+    }
+
+    function deleteHistory(id) {
+      history = history.filter(job => job.id !== id);
+      localStorage.setItem('finishedJobs', JSON.stringify(history));
+firebase.database().ref('finishedJobs').set(history);
+      renderHistory();
+    }
+  
+let isLoggedIn = false;
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('accessCode').addEventListener('input', function () {
+    const code = this.value;
+    if (code.length === 4 && code === '0000') {
+      checkLogin();
+    }
+  });
+
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('logoutBtn')?.classList.add('hidden');
+});
+
+function checkLogin() {
+  const code = document.getElementById('accessCode').value;
+  const error = document.getElementById('loginError');
+  if (code === '0000') {
+    isLoggedIn = true;
+    error.textContent = '';
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('homePage').classList.remove('hidden');
+    document.getElementById('logoutBtn')?.classList.remove('hidden');
+  } else {
+    error.textContent = "Incorrect access code.";
+  }
+}
+
+function logout() {
+  isLoggedIn = false;
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('logoutBtn')?.classList.add('hidden');
+}
+
+</script>
+</body>
+</html>
